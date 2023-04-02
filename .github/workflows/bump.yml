@@ -18,7 +18,7 @@ jobs:
       -
         name: Get tags
         run: |
-          git ls-remote --tags git@github.com:ImageMagick/ImageMagick.git |
+          git ls-remote --tags https://github.com/ImageMagick/ImageMagick.git |
           awk -f <(cat - <<-'SCRIPT'
           {
             split($2,refs,"/")
@@ -29,7 +29,7 @@ jobs:
           SCRIPT
           ) |
           sort -k 2,4 -k 5n |
-          sed -n "/$(git tag --sort=taggerdate | head -n1)/,\$p" |
+          sed -n "/$(git tag --sort=-authordate | head -n1)/,\$p" |
           head -n 2 |
           tail -n 1 |
           awk '{print $1}' |
