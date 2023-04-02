@@ -1,0 +1,49 @@
+name: Bump Version
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ssh-key: ${{ secrets.SSH_KEY }}
+          fetch-depth: 0
+      -
+        name: Get tags
+        run: |
+          git ls-remote --tags git@github.com:ImageMagick/ImageMagick.git |
+          awk -f <(cat - <<-'SCRIPT'
+          {
+            split($2,refs,"/")
+            split(refs[3],versions,".")
+            split(versions[3],patches,"-")
+            print versions[1],versions[2],patches[1],patches[2],refs[3]
+          }
+          SCRIPT
+          ) |
+          sort -k 1,3 -k 4n |
+          sed -n "/$(git tag --sort=-taggerdate | head -n1)/,\$p" |
+          tail -n +2 |
+          head -n 1 |
+          awk '{print $5}' |
+          echo TOOL_VERSION=$(cat -) | tee /dev/stderr >> $GITHUB_ENV
+      -
+        name: Bump
+        run: |
+          echo sed -i -e "\"s/tags\/.*\.tar\.gz/tags\/${TOOL_VERSION}\.tar\.gz/\"" Dockerfile | tee /dev/stderr | source /dev/stdin
+          if ! git diff --exit-code
+          then
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git commit -am "Bump version to ${TOOL_VERSION}"
+            git tag "${TOOL_VERSION}"
+            git push
+            git push --tags
+          fi
