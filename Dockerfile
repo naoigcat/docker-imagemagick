@@ -52,6 +52,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libwebp-dev \
         libxml2-dev \
     && \
-    apt clean && \
+    apt-get clean && \
     rm -rf /tmp/* /var/cache/apt/archives/* /var/lib/apt/lists/*
 WORKDIR /app
