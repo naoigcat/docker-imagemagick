@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libxml2-dev \
         libxml2 \
     && \
-    curl -fsSL https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.1-27.tar.gz | \
+    curl -fsSL https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.1-28.tar.gz | \
     tar zx --strip-components 1 -C /tmp && \
     cd /tmp && \
     ./configure --without-magick-plus-plus --disable-docs --disable-static && \
