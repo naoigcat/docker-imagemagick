@@ -33,17 +33,27 @@ jobs:
           head -n 2 |
           tail -n 1 |
           awk '{print $1}' |
-          echo TOOL_VERSION=$(cat -) | tee /dev/stderr >> $GITHUB_ENV
+          echo IM_VERSION=$(cat -) | tee /dev/stderr >> $GITHUB_ENV
+      -
+        name: Compute tarball SHA256
+        run: |
+          set -euo pipefail
+          URL="https://github.com/ImageMagick/ImageMagick/archive/refs/tags/${IM_VERSION}.tar.gz"
+          curl -fsSL "$URL" -o /tmp/imagemagick.tar.gz
+          IM_TARBALL_SHA256=$(sha256sum /tmp/imagemagick.tar.gz | awk '{print $1}')
+          echo "IM_TARBALL_SHA256=${IM_TARBALL_SHA256}" | tee /dev/stderr >> "$GITHUB_ENV"
       -
         name: Bump
         run: |
-          echo sed -i -e "\"s/tags\/.*\.tar\.gz/tags\/${TOOL_VERSION}\.tar\.gz/\"" Dockerfile | tee /dev/stderr | source /dev/stdin
+          set -euo pipefail
+          sed -i "s/^ARG IM_VERSION=.*/ARG IM_VERSION=${IM_VERSION}/" Dockerfile
+          sed -i "s/^ARG IM_TARBALL_SHA256=.*/ARG IM_TARBALL_SHA256=${IM_TARBALL_SHA256}/" Dockerfile
           if ! git diff --exit-code
           then
             git config --global user.name "github-actions[bot]"
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            git commit -am "Bump version to ${TOOL_VERSION}"
-            git tag "${TOOL_VERSION}"
+            git commit -am "Bump version to ${IM_VERSION}"
+            git tag "${IM_VERSION}"
             git push
             git push --tags
           fi
