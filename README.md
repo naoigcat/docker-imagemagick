@@ -34,24 +34,27 @@ You can use this Docker image in your GitHub Actions workflows to process images
 ### Basic Example
 
 ```yaml
-name: Process Images
+name: Process Image
 
 on: [push]
 
 jobs:
-  convert:
+  generate:
     runs-on: ubuntu-latest
     container:
       image: naoigcat/imagemagick:latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Convert image
-        run: convert input.png output.jpg
-      
-      - name: Get image info
-        run: identify output.jpg
+        uses: actions/checkout@v6
+
+      - name: Create sample image
+        run: magick -size 200x100 xc:white -gravity center -pointsize 24 -annotate 0 'Sample' output.jpg
+
+      - name: Upload sample image
+        uses: actions/upload-artifact@v4
+        with:
+          name: image
+          path: output.jpg
 ```
 
 ### Using with docker run
@@ -59,7 +62,7 @@ jobs:
 Alternatively, you can use the image with `docker run` in your workflow:
 
 ```yaml
-name: Image Processing
+name: Process Image
 
 on: [push]
 
@@ -68,48 +71,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Convert image
+        uses: actions/checkout@v6
+
+      - name: Create sample image
         run: |
-          docker run --rm -v "$PWD":/app naoigcat/imagemagick \
-            convert input.png -resize 800x600 output.jpg
-      
-      - name: Upload processed images
+          docker run --rm --user "$(id -u)":"$(id -g)" -v "$PWD":/app naoigcat/imagemagick \
+            magick -size 200x100 xc:white -gravity center -pointsize 24 -annotate 0 'Sample' output.jpg
+
+      - name: Upload sample image
         uses: actions/upload-artifact@v4
         with:
-          name: processed-images
+          name: image
           path: output.jpg
-```
-
-### Example: Batch Image Processing
-
-```yaml
-name: Batch Convert
-
-on: [push]
-
-jobs:
-  batch-convert:
-    runs-on: ubuntu-latest
-    container:
-      image: naoigcat/imagemagick:latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Batch convert PNG to JPG
-        run: |
-          shopt -s nullglob
-          for file in *.png; do
-            convert "$file" "${file%.png}.jpg"
-          done
-      
-      - name: Create thumbnails
-        run: |
-          shopt -s nullglob
-          mkdir -p thumbnails
-          for file in *.jpg; do
-            convert "$file" -resize 200x200 "thumbnails/$file"
-          done
 ```
