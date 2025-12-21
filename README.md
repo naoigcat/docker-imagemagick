@@ -18,11 +18,11 @@ docker pull naoigcat/imagemagick
 See [imagemagick](https://imagemagick.org/index.php) for available commands.
 
 ```sh
-docker run --rm -v \"$PWD\":/app naoigcat/imagemagick identify image.png
+docker run --rm --user "$(id -u)":"$(id -g)" -v "$PWD":/app naoigcat/imagemagick identify image.png
 ```
 
 It is recommended to create an alias:
 
 ```sh
-alias imagemagick="docker run --rm -v \"$PWD\":/app naoigcat/imagemagick"
+alias imagemagick='docker run --rm --user "$(id -u)":"$(id -g)" -v "$PWD":/app naoigcat/imagemagick'
 ```
