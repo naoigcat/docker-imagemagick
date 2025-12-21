@@ -100,12 +100,14 @@ jobs:
       
       - name: Batch convert PNG to JPG
         run: |
+          shopt -s nullglob
           for file in *.png; do
             convert "$file" "${file%.png}.jpg"
           done
       
       - name: Create thumbnails
         run: |
+          shopt -s nullglob
           mkdir -p thumbnails
           for file in *.jpg; do
             convert "$file" -resize 200x200 "thumbnails/$file"
