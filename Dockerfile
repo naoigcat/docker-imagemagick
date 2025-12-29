@@ -1,8 +1,8 @@
 FROM debian:bullseye-slim AS builder
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG IM_VERSION=7.1.2-3
-ARG IM_TARBALL_SHA256=b16415e8694a2e15e5282d64fc7b358f309ff3a514a90eb5da268676c772de3d
+ARG IM_VERSION=7.1.2-5
+ARG IM_TARBALL_SHA256=9ecb0c491c372de74579fc37b53e84d7a22a1bf02efb5bf940f811d3d0005e7f
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
