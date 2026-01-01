@@ -19,6 +19,7 @@ jobs:
         name: Get tags
         run: |
           git ls-remote --tags https://github.com/ImageMagick/ImageMagick.git |
+          grep -v '\^{}$' |
           awk -f <(cat - <<-'SCRIPT'
           {
             split($2,refs,"/")
