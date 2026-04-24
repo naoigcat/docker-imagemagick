@@ -13,18 +13,31 @@
 docker pull naoigcat/imagemagick
 ```
 
+## Security
+
+-   The image runs as an unprivileged user by default.
+-   The Debian base image is pinned by digest to reduce supply-chain drift.
+-   ImageMagick remote URL delegates and indirect file reads are disabled in the bundled policy.
+-   CI publishes SBOM and provenance attestations and runs scheduled vulnerability scans.
+
 ## Usage
 
 See [imagemagick](https://imagemagick.org/index.php) for available commands.
 
 ```sh
-docker run --rm --user "$(id -u)":"$(id -g)" -v "$PWD":/app naoigcat/imagemagick identify image.png
+docker run --rm -v "$PWD":/app naoigcat/imagemagick identify image.png
 ```
 
 It is recommended to create an alias:
 
 ```sh
-alias imagemagick='docker run --rm --user "$(id -u)":"$(id -g)" -v "$PWD":/app naoigcat/imagemagick'
+alias imagemagick='docker run --rm -v "$PWD":/app naoigcat/imagemagick'
+```
+
+If you need files in the mounted directory to be owned by the host user, override the container user explicitly.
+
+```sh
+docker run --rm --user "$(id -u)":"$(id -g)" -v "$PWD":/app naoigcat/imagemagick identify image.png
 ```
 
 ## Using in GitHub Actions
