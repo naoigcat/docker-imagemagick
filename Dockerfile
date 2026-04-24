@@ -58,6 +58,7 @@ RUN groupadd --system --gid 10001 imagemagick && \
     install -d -o imagemagick -g imagemagick /app
 
 COPY --from=builder /usr/local/ /usr/local/
+COPY docker/policy.xml /usr/local/etc/ImageMagick-7/policy.xml
 RUN ldconfig
 
 ENV HOME=/home/imagemagick
