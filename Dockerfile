@@ -53,7 +53,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && \
     rm -rf /var/lib/apt/lists/*
 
+RUN groupadd --system --gid 10001 imagemagick && \
+    useradd --system --uid 10001 --gid imagemagick --create-home --home-dir /home/imagemagick imagemagick && \
+    install -d -o imagemagick -g imagemagick /app
+
 COPY --from=builder /usr/local/ /usr/local/
 RUN ldconfig
 
+ENV HOME=/home/imagemagick
 WORKDIR /app
+USER imagemagick:imagemagick
