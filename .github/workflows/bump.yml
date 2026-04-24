@@ -19,6 +19,7 @@ jobs:
       -
         name: Get tags
         run: |
+          set -euo pipefail
           git ls-remote --tags https://github.com/ImageMagick/ImageMagick.git |
           grep -v '\^{}$' |
           awk -f <(cat - <<-'SCRIPT'
@@ -52,10 +53,10 @@ jobs:
           sed -i "s/^ARG IM_TARBALL_SHA256=.*/ARG IM_TARBALL_SHA256=${IM_TARBALL_SHA256}/" Dockerfile
           if ! git diff --exit-code
           then
-            git config --global user.name "github-actions[bot]"
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
             git commit -am "Bump version to ${IM_VERSION}"
             git tag "${IM_VERSION}"
-            git push
-            git push --tags
+            git push origin HEAD
+            git push origin "refs/tags/${IM_VERSION}"
           fi
