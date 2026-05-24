@@ -1,4 +1,4 @@
-FROM debian:bullseye-slim@sha256:89400a8b54c93d61bb2f971f1ada1d907b344f2422afabf23699fdf1f162faa0 AS builder
+FROM debian:bullseye-slim@sha256:cd1bc32f233a49f1b82149c9edb8ef34fb1e6c45f37211445c51a97603468604 AS builder
 ENV DEBIAN_FRONTEND=noninteractive
 
 ARG IM_VERSION=7.1.2-23
@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /tmp/imagemagick-src /tmp/imagemagick.tar.gz && \
     rm -rf /var/lib/apt/lists/*
 
-FROM debian:bullseye-slim@sha256:89400a8b54c93d61bb2f971f1ada1d907b344f2422afabf23699fdf1f162faa0
+FROM debian:bullseye-slim@sha256:cd1bc32f233a49f1b82149c9edb8ef34fb1e6c45f37211445c51a97603468604
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
