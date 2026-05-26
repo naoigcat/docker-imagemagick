@@ -58,7 +58,29 @@ RUN groupadd --system --gid 10001 imagemagick && \
     install -d -o imagemagick -g imagemagick /app
 
 COPY --from=builder /usr/local/ /usr/local/
-COPY docker/policy.xml /usr/local/etc/ImageMagick-7/policy.xml
+RUN cat > /usr/local/etc/ImageMagick-7/policy.xml <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policymap [
+<!ELEMENT policymap (policy)*>
+<!ATTLIST policymap xmlns CDATA #FIXED ''>
+<!ELEMENT policy EMPTY>
+<!ATTLIST policy xmlns CDATA #FIXED '' domain NMTOKEN #REQUIRED
+  name NMTOKEN #IMPLIED pattern CDATA #IMPLIED rights NMTOKEN #IMPLIED
+  stealth NMTOKEN #IMPLIED value CDATA #IMPLIED>
+]>
+<policymap>
+  <policy domain="resource" name="memory" value="512MiB"/>
+  <policy domain="resource" name="map" value="1GiB"/>
+  <policy domain="resource" name="disk" value="2GiB"/>
+  <policy domain="resource" name="area" value="128MP"/>
+  <policy domain="resource" name="time" value="120"/>
+  <policy domain="resource" name="thread" value="4"/>
+  <policy domain="path" rights="none" pattern="@*"/>
+  <policy domain="delegate" rights="none" pattern="URL"/>
+  <policy domain="delegate" rights="none" pattern="HTTP"/>
+  <policy domain="delegate" rights="none" pattern="HTTPS"/>
+</policymap>
+EOF
 RUN ldconfig
 
 ENV HOME=/home/imagemagick
