@@ -58,29 +58,32 @@ RUN groupadd --system --gid 10001 imagemagick && \
     install -d -o imagemagick -g imagemagick /app
 
 COPY --from=builder /usr/local/ /usr/local/
-RUN cat > /usr/local/etc/ImageMagick-7/policy.xml <<'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE policymap [
-<!ELEMENT policymap (policy)*>
-<!ATTLIST policymap xmlns CDATA #FIXED ''>
-<!ELEMENT policy EMPTY>
-<!ATTLIST policy xmlns CDATA #FIXED '' domain NMTOKEN #REQUIRED
-  name NMTOKEN #IMPLIED pattern CDATA #IMPLIED rights NMTOKEN #IMPLIED
-  stealth NMTOKEN #IMPLIED value CDATA #IMPLIED>
-]>
-<policymap>
-  <policy domain="resource" name="memory" value="512MiB"/>
-  <policy domain="resource" name="map" value="1GiB"/>
-  <policy domain="resource" name="disk" value="2GiB"/>
-  <policy domain="resource" name="area" value="128MP"/>
-  <policy domain="resource" name="time" value="120"/>
-  <policy domain="resource" name="thread" value="4"/>
-  <policy domain="path" rights="none" pattern="@*"/>
-  <policy domain="delegate" rights="none" pattern="URL"/>
-  <policy domain="delegate" rights="none" pattern="HTTP"/>
-  <policy domain="delegate" rights="none" pattern="HTTPS"/>
-</policymap>
-EOF
+RUN set -eux; \
+    policy_file=/usr/local/etc/ImageMagick-7/policy.xml; \
+    tmp_file="$(mktemp)"; \
+    awk ' \
+        /<\/policymap>/ { \
+            print "  <!-- Keep upstream hardening and add container-specific limits for untrusted input. -->"; \
+            print "  <policy domain=\"resource\" name=\"memory\" value=\"512MiB\"/>"; \
+            print "  <policy domain=\"resource\" name=\"map\" value=\"1GiB\"/>"; \
+            print "  <policy domain=\"resource\" name=\"disk\" value=\"2GiB\"/>"; \
+            print "  <policy domain=\"resource\" name=\"area\" value=\"128MP\"/>"; \
+            print "  <policy domain=\"resource\" name=\"time\" value=\"120\"/>"; \
+            print "  <policy domain=\"resource\" name=\"thread\" value=\"4\"/>"; \
+            print "  <policy domain=\"path\" rights=\"none\" pattern=\"@*\"/>"; \
+            print "  <policy domain=\"delegate\" rights=\"none\" pattern=\"URL\"/>"; \
+            print "  <policy domain=\"delegate\" rights=\"none\" pattern=\"HTTP\"/>"; \
+            print "  <policy domain=\"delegate\" rights=\"none\" pattern=\"HTTPS\"/>"; \
+            print "  <policy domain=\"coder\" rights=\"none\" pattern=\"PDF\"/>"; \
+            print "  <policy domain=\"coder\" rights=\"none\" pattern=\"PS\"/>"; \
+            print "  <policy domain=\"coder\" rights=\"none\" pattern=\"PS2\"/>"; \
+            print "  <policy domain=\"coder\" rights=\"none\" pattern=\"PS3\"/>"; \
+            print "  <policy domain=\"coder\" rights=\"none\" pattern=\"EPS\"/>"; \
+            print "  <policy domain=\"coder\" rights=\"none\" pattern=\"XPS\"/>"; \
+        } \
+        { print } \
+    ' "$policy_file" > "$tmp_file"; \
+    mv "$tmp_file" "$policy_file"
 RUN ldconfig
 
 ENV HOME=/home/imagemagick

@@ -17,7 +17,8 @@ docker pull naoigcat/imagemagick
 
 -   The image runs as an unprivileged user by default.
 -   The Debian base image is pinned by digest to reduce supply-chain drift.
--   ImageMagick remote URL delegates and indirect file reads are disabled in the bundled policy.
+-   ImageMagick keeps its upstream policy hardening and adds container-specific limits.
+-   Remote URL delegates, indirect file reads, and Ghostscript-backed coders are disabled in the bundled policy.
 -   CI publishes SBOM and provenance attestations and runs scheduled vulnerability scans.
 
 ## Usage
