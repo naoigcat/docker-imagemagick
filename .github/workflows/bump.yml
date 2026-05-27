@@ -37,7 +37,7 @@ jobs:
           }
           SCRIPT
           ) |
-          sort -k 2,4 -k 5n |
+          sort -k 2,2n -k 3,3n -k 4,4n -k 5,5n |
           sed -n "/$(git tag --sort=-authordate | head -n1)/,\$p" |
           head -n 2 |
           tail -n 1 |
