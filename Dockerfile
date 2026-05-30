@@ -84,7 +84,8 @@ RUN set -eux; \
         } \
         { print } \
     ' "$policy_file" > "$tmp_file"; \
-    mv "$tmp_file" "$policy_file"
+    install -m 0644 "$tmp_file" "$policy_file"; \
+    rm "$tmp_file"
 RUN ldconfig
 
 ENV HOME=/home/imagemagick
