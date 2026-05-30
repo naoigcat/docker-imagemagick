@@ -53,16 +53,29 @@ jobs:
           echo "IM_TARBALL_SHA256=${IM_TARBALL_SHA256}" | tee /dev/stderr >> "$GITHUB_ENV"
       -
         name: Bump
+        id: bump
         run: |
           set -euo pipefail
           sed -i "s/^ARG IM_VERSION=.*/ARG IM_VERSION=${IM_VERSION}/" Dockerfile
           sed -i "s/^ARG IM_TARBALL_SHA256=.*/ARG IM_TARBALL_SHA256=${IM_TARBALL_SHA256}/" Dockerfile
-          if ! git diff --exit-code
+          if git diff --quiet
           then
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git commit -am "Bump version to ${IM_VERSION}"
-            git tag "${IM_VERSION}"
-            git push origin HEAD
-            git push origin "refs/tags/${IM_VERSION}"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+      -
+        name: Verify build
+        if: steps.bump.outputs.changed == 'true'
+        run: docker build --pull -t imagemagick:${IM_VERSION} .
+      -
+        name: Commit and tag
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "Bump version to ${IM_VERSION}"
+          git tag "${IM_VERSION}"
+          git push origin HEAD
+          git push origin "refs/tags/${IM_VERSION}"
