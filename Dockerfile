@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM debian:bullseye-slim@sha256:ff4b13408ab702565720c6b23582ebda7bfdddfe9ce2b8c5b49e6d40430fdb05 AS builder
+FROM debian:bullseye-slim@sha256:f18adf4e1d04b1d8ba48025b8e35003f4c748ddd3dd8e875fe4e7d9a9c0dec84 AS builder
 ENV DEBIAN_FRONTEND=noninteractive
 
 ARG IM_VERSION=7.1.2-26
@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /tmp/imagemagick-src /tmp/imagemagick.tar.gz && \
     rm -rf /var/lib/apt/lists/*
 
-FROM debian:bullseye-slim@sha256:ff4b13408ab702565720c6b23582ebda7bfdddfe9ce2b8c5b49e6d40430fdb05
+FROM debian:bullseye-slim@sha256:f18adf4e1d04b1d8ba48025b8e35003f4c748ddd3dd8e875fe4e7d9a9c0dec84
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
