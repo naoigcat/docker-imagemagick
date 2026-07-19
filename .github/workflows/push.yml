@@ -11,7 +11,7 @@ permissions:
 jobs:
   push:
     runs-on: ubuntu-22.04
-    timeout-minutes: 30
+    timeout-minutes: 100
     steps:
       -
         name: Checkout
@@ -42,7 +42,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Build and Push
+        name: Build and Push (attempt 1)
+        id: build
+        continue-on-error: true
+        timeout-minutes: 30
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
@@ -53,3 +56,47 @@ jobs:
           sbom: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      -
+        name: Wait before build retry 1
+        if: steps.build.outcome == 'failure'
+        run: sleep 30
+      -
+        name: Build and Push (retry 1 of 2)
+        id: build_retry_1
+        if: steps.build.outcome == 'failure'
+        continue-on-error: true
+        timeout-minutes: 30
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          pull: true
+          push: true
+          provenance: mode=max
+          sbom: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      -
+        name: Wait before build retry 2
+        if: steps.build_retry_1.outcome == 'failure'
+        run: sleep 60
+      -
+        name: Build and Push (retry 2 of 2)
+        id: build_retry_2
+        if: steps.build_retry_1.outcome == 'failure'
+        continue-on-error: true
+        timeout-minutes: 30
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          pull: true
+          push: true
+          provenance: mode=max
+          sbom: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      -
+        name: Fail if all build attempts fail
+        if: steps.build_retry_2.outcome == 'failure'
+        run: exit 1
