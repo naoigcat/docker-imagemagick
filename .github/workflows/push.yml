@@ -3,7 +3,7 @@ name: Push to Docker Hub
 on:
   push:
     tags:
-      - '*'
+      - '[0-9]+.[0-9]+.[0-9]+-[0-9]+'
 
 permissions:
   contents: read
@@ -19,6 +19,22 @@ jobs:
         with:
           persist-credentials: false
       -
+        name: Validate release tag
+        run: |
+          set -euo pipefail
+          version_pattern='^[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$'
+          dockerfile_version=$(sed -n 's/^ARG IM_VERSION=//p' Dockerfile)
+          if [[ ! "${GITHUB_REF_NAME}" =~ ${version_pattern} ]]
+          then
+            echo "::error::Invalid release tag: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+          if [[ "${GITHUB_REF_NAME}" != "${dockerfile_version}" ]]
+          then
+            echo "::error::Release tag ${GITHUB_REF_NAME} does not match Dockerfile IM_VERSION ${dockerfile_version}"
+            exit 1
+          fi
+      -
         name: Set up QEMU
         uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
       -
@@ -31,10 +47,10 @@ jobs:
         with:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/imagemagick
           tags: |
-            type=ref,event=tag,priority=900
-            type=match,pattern=(\d+\.\d+\.\d+)-\d+,group=1,priority=830
-            type=match,pattern=(\d+\.\d+)\.\d+-\d+,group=1,priority=820
-            type=match,pattern=(\d+)\.\d+\.\d+-\d+,group=1,priority=810
+            type=match,pattern=^[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$,priority=900
+            type=match,pattern=^(\d+\.\d+\.\d+)-\d+$,group=1,priority=830
+            type=match,pattern=^(\d+\.\d+)\.\d+-\d+$,group=1,priority=820
+            type=match,pattern=^(\d+)\.\d+\.\d+-\d+$,group=1,priority=810
       -
         name: Login
         uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4.5.1

@@ -27,23 +27,51 @@ jobs:
         name: Get tags
         run: |
           set -euo pipefail
-          git ls-remote --tags https://github.com/ImageMagick/ImageMagick.git |
-          grep -v '\^{}$' |
-          awk -f <(cat - <<-'SCRIPT'
-          {
-            split($2,refs,"/")
-            split(refs[3],versions,".")
-            split(versions[3],patches,"-")
-            print refs[3],versions[1],versions[2],patches[1],patches[2]
-          }
-          SCRIPT
-          ) |
-          sort -k 2,2n -k 3,3n -k 4,4n -k 5,5n |
-          sed -n "/$(git tag --sort=-authordate | head -n1)/,\$p" |
-          head -n 2 |
-          tail -n 1 |
-          awk '{print $1}' |
-          echo IM_VERSION=$(cat -) | tee /dev/stderr >> $GITHUB_ENV
+          version_pattern='^[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$'
+          current_version=$(sed -n 's/^ARG IM_VERSION=//p' Dockerfile)
+          if [[ ! "${current_version}" =~ ${version_pattern} ]]
+          then
+            echo "::error::Invalid Dockerfile IM_VERSION: ${current_version}"
+            exit 1
+          fi
+          IM_VERSION=$(
+            git ls-remote --tags https://github.com/ImageMagick/ImageMagick.git |
+            grep -v '\^{}$' |
+            awk -f <(cat - <<-'SCRIPT'
+            {
+              tag = $2
+              sub(/^refs\/tags\//,"",tag)
+              if (tag !~ /^[0-9]+\.[0-9]+\.[0-9]+-[0-9]+$/) {
+                next
+              }
+              split(tag,versions,".")
+              split(versions[3],patches,"-")
+              print tag,versions[1],versions[2],patches[1],patches[2]
+            }
+            SCRIPT
+            ) |
+            sort -k 2,2n -k 3,3n -k 4,4n -k 5,5n |
+            awk -v current_version="${current_version}" '
+            $1 == current_version {
+              found = 1
+            }
+            found && count < 2 {
+              candidate = $1
+              count++
+            }
+            END {
+              if (found) {
+                print candidate
+              }
+            }
+            '
+          )
+          if [[ -z "${IM_VERSION}" ]]
+          then
+            echo "::error::Dockerfile IM_VERSION ${current_version} was not found in upstream tags"
+            exit 1
+          fi
+          echo "IM_VERSION=${IM_VERSION}" | tee /dev/stderr >> "$GITHUB_ENV"
       -
         name: Compute tarball SHA256
         run: |
