@@ -48,7 +48,7 @@ jobs:
               split(versions[3],patches,"-")
               print tag,versions[1],versions[2],patches[1],patches[2]
             }
-            SCRIPT
+          SCRIPT
             ) |
             sort -k 2,2n -k 3,3n -k 4,4n -k 5,5n |
             awk -v current_version="${current_version}" '
