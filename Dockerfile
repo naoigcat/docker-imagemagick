@@ -62,7 +62,8 @@ RUN set -eux; \
     policy_file=/usr/local/etc/ImageMagick-7/policy.xml; \
     tmp_file="$(mktemp)"; \
     awk ' \
-        /<\/policymap>/ { \
+        /^[[:space:]]*<\/policymap>[[:space:]]*$/ { \
+            closing_tag_count++; \
             print "  <!-- Keep upstream hardening and add container-specific limits for untrusted input. -->"; \
             print "  <policy domain=\"resource\" name=\"memory\" value=\"512MiB\"/>"; \
             print "  <policy domain=\"resource\" name=\"map\" value=\"1GiB\"/>"; \
@@ -82,9 +83,42 @@ RUN set -eux; \
             print "  <policy domain=\"coder\" rights=\"none\" pattern=\"XPS\"/>"; \
         } \
         { print } \
+        END { \
+            if (closing_tag_count != 1) { \
+                printf "Expected exactly one </policymap> tag, found %d.\n", closing_tag_count > "/dev/stderr"; \
+                exit 1; \
+            } \
+        } \
     ' "$policy_file" > "$tmp_file"; \
+    validation_directory="$(mktemp -d)"; \
+    install -m 0644 "$tmp_file" "$validation_directory/policy.xml"; \
+    policy_list="$(MAGICK_CONFIGURE_PATH="$validation_directory" magick -list policy)"; \
+    printf '%s\n' "$policy_list" | grep -Fq 'pattern: XPS'; \
+    for required_policy in \
+        'domain="resource" name="memory" value="512MiB"' \
+        'domain="resource" name="map" value="1GiB"' \
+        'domain="resource" name="disk" value="2GiB"' \
+        'domain="resource" name="area" value="128MP"' \
+        'domain="resource" name="time" value="120"' \
+        'domain="resource" name="thread" value="4"' \
+        'domain="path" rights="none" pattern="@*"' \
+        'domain="delegate" rights="none" pattern="URL"' \
+        'domain="delegate" rights="none" pattern="HTTP"' \
+        'domain="delegate" rights="none" pattern="HTTPS"' \
+        'domain="coder" rights="none" pattern="PDF"' \
+        'domain="coder" rights="none" pattern="PS"' \
+        'domain="coder" rights="none" pattern="PS2"' \
+        'domain="coder" rights="none" pattern="PS3"' \
+        'domain="coder" rights="none" pattern="EPS"' \
+        'domain="coder" rights="none" pattern="XPS"'; \
+    do \
+        grep -Fq "$required_policy" "$tmp_file" || { \
+            printf 'Missing required ImageMagick policy: %s\n' "$required_policy" >&2; \
+            exit 1; \
+        }; \
+    done; \
     install -m 0644 "$tmp_file" "$policy_file"; \
-    rm "$tmp_file"
+    rm -rf "$validation_directory" "$tmp_file"
 RUN ldconfig
 
 ENV HOME=/home/imagemagick
