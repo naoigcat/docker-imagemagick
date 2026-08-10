@@ -11,7 +11,7 @@ permissions:
 jobs:
   push:
     runs-on: ubuntu-22.04
-    timeout-minutes: 100
+    timeout-minutes: 240
     steps:
       -
         name: Checkout
