@@ -1,0 +1,3 @@
+[tasks.test]
+description = "Run tests in the tests directory"
+run = "find tests -type f -name '*.sh' -print0 | xargs -0 -n1 bash"
