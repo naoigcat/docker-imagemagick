@@ -74,7 +74,7 @@ then
 fi
 
 policy_block=$(sed -n "$(grep -n '^RUN set -eux;' "$dockerfile" | head -n1 | cut -d: -f1),$(grep -n '^RUN ldconfig' "$dockerfile" | head -n1 | cut -d: -f1)p" "$dockerfile")
-grep -Fq 'MAGICK_CONFIGURE_PATH="$validation_directory" magick -list policy' <<< "$policy_block"
+grep -Fq 'LD_LIBRARY_PATH=/usr/local/lib MAGICK_CONFIGURE_PATH="$validation_directory" magick -list policy' <<< "$policy_block"
 grep -Fq 'grep -Fq "$required_policy" "$tmp_file"' <<< "$policy_block"
 
 validation_line=$(grep -nF 'policy_list=' <<< "$policy_block" | head -n1 | cut -d: -f1)

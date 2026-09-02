@@ -92,7 +92,7 @@ RUN set -eux; \
     ' "$policy_file" > "$tmp_file"; \
     validation_directory="$(mktemp -d)"; \
     install -m 0644 "$tmp_file" "$validation_directory/policy.xml"; \
-    policy_list="$(MAGICK_CONFIGURE_PATH="$validation_directory" magick -list policy)"; \
+    policy_list="$(LD_LIBRARY_PATH=/usr/local/lib MAGICK_CONFIGURE_PATH="$validation_directory" magick -list policy)"; \
     printf '%s\n' "$policy_list" | grep -Fq 'pattern: XPS'; \
     for required_policy in \
         'domain="resource" name="memory" value="512MiB"' \
