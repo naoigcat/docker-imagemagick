@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM debian:bullseye-slim@sha256:e5b6442dd2e9684cf5e87d8338b5968f3b348636fc0be6d7850a381e3731a2bd AS builder
+FROM debian:bookworm-slim@sha256:7ff6ba31527b9e336162fa061746c366c4b2032f4d2cff2078bea43f78efe3f8 AS builder
 ENV DEBIAN_FRONTEND=noninteractive
 
 ARG IM_VERSION=7.1.2-31
@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /tmp/imagemagick-src /tmp/imagemagick.tar.gz && \
     rm -rf /var/lib/apt/lists/*
 
-FROM debian:bullseye-slim@sha256:e5b6442dd2e9684cf5e87d8338b5968f3b348636fc0be6d7850a381e3731a2bd
+FROM debian:bookworm-slim@sha256:7ff6ba31527b9e336162fa061746c366c4b2032f4d2cff2078bea43f78efe3f8
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -44,8 +44,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libjbig0 \
         libjpeg62-turbo \
         libpng16-16 \
-        libtiff5 \
-        libwebp6 \
+        libtiff6 \
+        libwebp7 \
         libwebpdemux2 \
         libwebpmux3 \
         libx11-6 \
