@@ -2,8 +2,8 @@
 FROM debian:bookworm-slim@sha256:7ff6ba31527b9e336162fa061746c366c4b2032f4d2cff2078bea43f78efe3f8 AS builder
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG IM_VERSION=7.1.2-31
-ARG IM_TARBALL_SHA256=34d9cc3acddc3e3c429d23af60eda5ceaac477a8b296ddb9469f773f44a80a5f
+ARG IM_VERSION=7.1.2-32
+ARG IM_TARBALL_SHA256=940e349f0ef394e658fd57400b83d1d7a81b954f6e7bdbfbfad31b2718c10add
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
